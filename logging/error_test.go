@@ -23,7 +23,7 @@ func TestReportError(t *testing.T) {
 
 	r, _ := http.NewRequest(http.MethodGet, "http://failing.service", nil)
 
-	ReportError(logger, errors.New("Failure"), r, "testSubject")
+	ReportError(logger, errors.New("Failure"), WithHttpRequest(r), WithSubject("testSubject"))
 
 	var structuredLog map[string]interface{}
 

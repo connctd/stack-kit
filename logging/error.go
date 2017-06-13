@@ -52,16 +52,16 @@ type reportLocation struct {
 }
 
 type context struct {
-	User           string         `json:"user"`
-	ReportLocation reportLocation `json:"reportLocation"`
-	HttpRequest    httpRequest    `json:"httpRequest"`
+	User           string
+	ReportLocation reportLocation
+	HttpRequest    httpRequest
 }
 
 func (c context) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
-		User           string         `json:"user"`
-		ReportLocation reportLocation `json:"reportLocation"`
-		HttpRequest    httpRequest    `json:"httpRequest"`
+		User           string         `json:"user,omitempty"`
+		ReportLocation reportLocation `json:"reportLocation,omitempty"`
+		HttpRequest    httpRequest    `json:"httpRequest,omitempty"`
 	}{c.User, c.ReportLocation, c.HttpRequest})
 }
 
@@ -90,14 +90,14 @@ func WithHttpRequest(r *http.Request) infoFunc {
 // ReportError collects all necessary information and creates the necessary key value pairs
 // so that the error report can be parsed by stackdriver logging. It directly submits the error
 // report to the logging subsystem and doesn't allow to add other key value pairs
-func ReportError(logger log.Logger, err error, r *http.Request, subjectId string) {
-	logger.Log(errorReport(err, WithSubject(subjectId), WithHttpRequest(r))...)
+func ReportError(logger log.Logger, err error, infoFuncs ...infoFunc) {
+	logger.Log(errorReport(err, infoFuncs...)...)
 }
 
 // LogError does the same as ReportError, but returns a Logger instance and lets you log
 // additional key value pairs
-func LogError(logger log.Logger, err error, r *http.Request, subjectId string) log.Logger {
-	return log.WithPrefix(logger, errorReport(err, WithSubject(subjectId), WithHttpRequest(r))...)
+func LogError(logger log.Logger, err error, infoFuncs ...infoFunc) log.Logger {
+	return log.WithPrefix(logger, errorReport(err, infoFuncs...)...)
 }
 
 func errorReport(err error, infoFuncs ...infoFunc) []interface{} {
