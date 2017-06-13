@@ -6,7 +6,6 @@ go:
   - master
 
 install:
-  - make
   - go get -t ./...
   - go get -t ./logging/...
 
