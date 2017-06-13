@@ -5,8 +5,9 @@ This repository provides helper libraries to use go-kit in combination with
 
 ## logging
 
-The logging package provides utilities for go-kit logger so stackriver can correctly parse the received logs.
-Is always assumed that the JSONLogger will be used. The logging package currently helps with
+The [logging](https://godoc.org/github.com/connctd/stack-kit/logging) package provides utilities for go-kit 
+logger so stackriver can correctly parse the received logs.
+It is always assumed that the JSONLogger will be used. The logging package currently helps with:
 
 * setting the correct severity
 * correctly formatted error reports
