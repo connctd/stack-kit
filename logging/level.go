@@ -6,6 +6,7 @@ import (
 
 type level byte
 
+// LevelValue represents the value of the log level
 type LevelValue struct {
 	name string
 	level
@@ -41,6 +42,8 @@ type filter struct {
 	minLevel *LevelValue
 }
 
+// LevelFromString returns the LevelValue represented by the given string.
+// If the string doesn't represent a valid log level a default of LevelInfo is returned.
 func LevelFromString(in string) *LevelValue {
 	switch in {
 	case "debug":
@@ -63,6 +66,8 @@ func LevelFromString(in string) *LevelValue {
 	return LevelInfo
 }
 
+// NewFilter creates a new filtering loggering which surpresses all log entries
+// with a severity below the specified LevelValue
 func NewFilter(next log.Logger, minLevel *LevelValue) log.Logger {
 	return &filter{
 		next:     next,
