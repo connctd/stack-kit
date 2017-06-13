@@ -87,6 +87,13 @@ func WithHttpRequest(r *http.Request) infoFunc {
 	}
 }
 
+func WithStatusCode(status int) infoFunc {
+	return func(ctx context) context {
+		ctx.HttpRequest.ResponseStatusCode = status
+		return ctx
+	}
+}
+
 // ReportError collects all necessary information and creates the necessary key value pairs
 // so that the error report can be parsed by stackdriver logging. It directly submits the error
 // report to the logging subsystem and doesn't allow to add other key value pairs
