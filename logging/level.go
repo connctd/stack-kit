@@ -4,6 +4,46 @@ import (
 	"github.com/go-kit/kit/log"
 )
 
+// Debug returns a logger that includes a severity of level debug
+func Debug(logger log.Logger) log.Logger {
+	return log.WithPrefix(logger, severityKey, LevelDebug)
+}
+
+// Info returns a logger that includes a severity of level info
+func Info(logger log.Logger) log.Logger {
+	return log.WithPrefix(logger, severityKey, LevelInfo)
+}
+
+// Notice returns a logger that includes a severity of level notice
+func Notice(logger log.Logger) log.Logger {
+	return log.WithPrefix(logger, severityKey, LevelNotice)
+}
+
+// Warning returns a logger that includes a severity of level warning
+func Warning(logger log.Logger) log.Logger {
+	return log.WithPrefix(logger, severityKey, LevelWarning)
+}
+
+// Error returns a logger that includes a severity of level error
+func Error(logger log.Logger) log.Logger {
+	return log.WithPrefix(logger, severityKey, LevelError)
+}
+
+// Critical returns a logger that includes a severity of level critical
+func Critical(logger log.Logger) log.Logger {
+	return log.WithPrefix(logger, severityKey, LevelCritical)
+}
+
+// Alert returns a logger that includes a severity of level alert
+func Alert(logger log.Logger) log.Logger {
+	return log.WithPrefix(logger, severityKey, LevelAlert)
+}
+
+// Emergency returns a logger that includes a severity of level emergency
+func Emergency(logger log.Logger) log.Logger {
+	return log.WithPrefix(logger, severityKey, LevelEmergency)
+}
+
 type level byte
 
 // LevelValue represents the value of the log level
