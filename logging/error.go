@@ -14,13 +14,16 @@ import (
 )
 
 var (
-	defaultServiceContext ServiceContext
+	defaultServiceContext = ServiceContext{"unset", "none"}
 )
 
+// SetServiceContext sets the service context for stackdriver error reporting. Needs to be set
+// before the first calls to ReportError or LogError
 func SetServiceContext(s ServiceContext) {
 	defaultServiceContext = s
 }
 
+// ServiceContext defines the reported service name and version
 type ServiceContext struct {
 	Service string
 	Version string
@@ -48,13 +51,13 @@ type reportLocation struct {
 	FunctionName string `json:"functionName"`
 }
 
-type Context struct {
+type context struct {
 	User           string         `json:"user"`
 	ReportLocation reportLocation `json:"reportLocation"`
 	HttpRequest    httpRequest    `json:"httpRequest"`
 }
 
-func (c Context) MarshalJSON() ([]byte, error) {
+func (c context) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
 		User           string         `json:"user"`
 		ReportLocation reportLocation `json:"reportLocation"`
@@ -62,10 +65,15 @@ func (c Context) MarshalJSON() ([]byte, error) {
 	}{c.User, c.ReportLocation, c.HttpRequest})
 }
 
+// ReportError collects all necessary information and creates the necessary key value pairs
+// so that the error report can be parsed by stackdriver logging. It directly submits the error
+// report to the logging subsystem and doesn't allow to add other key value pairs
 func ReportError(logger log.Logger, err error, r *http.Request, subjectId string) {
 	logger.Log(errorReport(err, r, subjectId)...)
 }
 
+// LogError does the same as ReportError, but returns a Logger instance and lets you log
+// additional key value pairs
 func LogError(logger log.Logger, err error, r *http.Request, subjectId string) log.Logger {
 	return log.WithPrefix(logger, errorReport(err, r, subjectId)...)
 }
@@ -75,21 +83,26 @@ func errorReport(err error, r *http.Request, subjectId string) []interface{} {
 
 	fileName, lineNumber := fileNameLineNumber(call)
 
-	ctx := Context{
+	ctx := context{
 		User: subjectId,
-		HttpRequest: httpRequest{
-			Method:    r.Method,
-			Url:       r.URL.String(),
-			UserAgent: r.UserAgent(),
-			Referrer:  r.Referer(),
-			RemoteIp:  r.RemoteAddr,
-		},
+
 		ReportLocation: reportLocation{
 			FilePath:     fileName,
 			LineNumber:   lineNumber,
 			FunctionName: fmt.Sprintf("%n", call),
 		},
 	}
+
+	if r != nil {
+		ctx.HttpRequest = httpRequest{
+			Method:    r.Method,
+			Url:       r.URL.String(),
+			UserAgent: r.UserAgent(),
+			Referrer:  r.Referer(),
+			RemoteIp:  r.RemoteAddr,
+		}
+	}
+
 	vals := []interface{}{
 		"serviceContext", defaultServiceContext,
 		"context", ctx,
