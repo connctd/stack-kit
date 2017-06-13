@@ -65,35 +65,17 @@ func (c context) MarshalJSON() ([]byte, error) {
 	}{c.User, c.ReportLocation, c.HttpRequest})
 }
 
-// ReportError collects all necessary information and creates the necessary key value pairs
-// so that the error report can be parsed by stackdriver logging. It directly submits the error
-// report to the logging subsystem and doesn't allow to add other key value pairs
-func ReportError(logger log.Logger, err error, r *http.Request, subjectId string) {
-	logger.Log(errorReport(err, r, subjectId)...)
-}
+type infoFunc func(context) context
 
-// LogError does the same as ReportError, but returns a Logger instance and lets you log
-// additional key value pairs
-func LogError(logger log.Logger, err error, r *http.Request, subjectId string) log.Logger {
-	return log.WithPrefix(logger, errorReport(err, r, subjectId)...)
-}
-
-func errorReport(err error, r *http.Request, subjectId string) []interface{} {
-	call := stack.Caller(2)
-
-	fileName, lineNumber := fileNameLineNumber(call)
-
-	ctx := context{
-		User: subjectId,
-
-		ReportLocation: reportLocation{
-			FilePath:     fileName,
-			LineNumber:   lineNumber,
-			FunctionName: fmt.Sprintf("%n", call),
-		},
+func WithSubject(subjectId string) infoFunc {
+	return func(ctx context) context {
+		ctx.User = subjectId
+		return ctx
 	}
+}
 
-	if r != nil {
+func WithHttpRequest(r *http.Request) infoFunc {
+	return func(ctx context) context {
 		ctx.HttpRequest = httpRequest{
 			Method:    r.Method,
 			Url:       r.URL.String(),
@@ -101,6 +83,38 @@ func errorReport(err error, r *http.Request, subjectId string) []interface{} {
 			Referrer:  r.Referer(),
 			RemoteIp:  r.RemoteAddr,
 		}
+		return ctx
+	}
+}
+
+// ReportError collects all necessary information and creates the necessary key value pairs
+// so that the error report can be parsed by stackdriver logging. It directly submits the error
+// report to the logging subsystem and doesn't allow to add other key value pairs
+func ReportError(logger log.Logger, err error, r *http.Request, subjectId string) {
+	logger.Log(errorReport(err, WithSubject(subjectId), WithHttpRequest(r))...)
+}
+
+// LogError does the same as ReportError, but returns a Logger instance and lets you log
+// additional key value pairs
+func LogError(logger log.Logger, err error, r *http.Request, subjectId string) log.Logger {
+	return log.WithPrefix(logger, errorReport(err, WithSubject(subjectId), WithHttpRequest(r))...)
+}
+
+func errorReport(err error, infoFuncs ...infoFunc) []interface{} {
+	call := stack.Caller(2)
+
+	fileName, lineNumber := fileNameLineNumber(call)
+
+	ctx := context{
+		ReportLocation: reportLocation{
+			FilePath:     fileName,
+			LineNumber:   lineNumber,
+			FunctionName: fmt.Sprintf("%n", call),
+		},
+	}
+
+	for _, f := range infoFuncs {
+		ctx = f(ctx)
 	}
 
 	vals := []interface{}{
