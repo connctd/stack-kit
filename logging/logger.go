@@ -50,6 +50,7 @@ func (s *SeverityAwareLogger) Log(keyvals ...interface{}) error {
 				severity = LevelError
 			}
 		} else {
+			keyvals = append(keyvals, "(MISSING)")
 			severity = LevelError
 		}
 	}
