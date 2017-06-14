@@ -67,6 +67,8 @@ func (c context) MarshalJSON() ([]byte, error) {
 
 type infoFunc func(context) context
 
+// WithSubject sets the user field of the context field in the structured log.
+// This field is optional.
 func WithSubject(subjectId string) infoFunc {
 	return func(ctx context) context {
 		ctx.User = subjectId
@@ -74,6 +76,8 @@ func WithSubject(subjectId string) infoFunc {
 	}
 }
 
+// WithHttpRequest sets the values for httpRequest in the context field. This
+// field is optional.
 func WithHttpRequest(r *http.Request) infoFunc {
 	return func(ctx context) context {
 		if ctx.HttpRequest == nil {
@@ -92,6 +96,8 @@ func WithHttpRequest(r *http.Request) infoFunc {
 	}
 }
 
+// WithStatusCode sets the responseStatusCode on context.httpRequest. This field is
+// optional
 func WithStatusCode(status int) infoFunc {
 	return func(ctx context) context {
 		if ctx.HttpRequest == nil {
