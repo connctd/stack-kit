@@ -1,7 +1,7 @@
 .PHONY: test
 
-GO_TEST=go test -v -cover -covermode=count -coverprofile=single.coverprofile
-
+#GO_TEST=go test -v -cover -covermode=count -coverprofile=single.coverprofile
+GO_TEST=goveralls -service=travis-ci -v -coverprofile=single.coverprofile -package
 test:
 	@echo Running tests
 	@$(eval PKGS := $(shell go list ./... | grep -v /vendor/))

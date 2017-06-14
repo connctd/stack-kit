@@ -6,6 +6,7 @@ go:
   - master
 
 install:
+  - go get -u github.com/mattn/goveralls
   - go get -t ./...
   - go get -t ./logging/...
 
