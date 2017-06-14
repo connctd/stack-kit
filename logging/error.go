@@ -54,14 +54,14 @@ type reportLocation struct {
 type context struct {
 	User           string
 	ReportLocation reportLocation
-	HttpRequest    httpRequest
+	HttpRequest    *httpRequest
 }
 
 func (c context) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
 		User           string         `json:"user,omitempty"`
 		ReportLocation reportLocation `json:"reportLocation,omitempty"`
-		HttpRequest    httpRequest    `json:"httpRequest,omitempty"`
+		HttpRequest    *httpRequest   `json:"httpRequest,omitempty"`
 	}{c.User, c.ReportLocation, c.HttpRequest})
 }
 
@@ -76,19 +76,27 @@ func WithSubject(subjectId string) infoFunc {
 
 func WithHttpRequest(r *http.Request) infoFunc {
 	return func(ctx context) context {
-		ctx.HttpRequest = httpRequest{
-			Method:    r.Method,
-			Url:       r.URL.String(),
-			UserAgent: r.UserAgent(),
-			Referrer:  r.Referer(),
-			RemoteIp:  r.RemoteAddr,
+		if ctx.HttpRequest == nil {
+			ctx.HttpRequest = &httpRequest{}
 		}
+
+		ctx.HttpRequest.Method = r.Method
+		if r.URL != nil {
+			ctx.HttpRequest.Url = r.URL.String()
+		}
+		ctx.HttpRequest.UserAgent = r.UserAgent()
+		ctx.HttpRequest.Referrer = r.Referer()
+		ctx.HttpRequest.RemoteIp = r.RemoteAddr
+
 		return ctx
 	}
 }
 
 func WithStatusCode(status int) infoFunc {
 	return func(ctx context) context {
+		if ctx.HttpRequest == nil {
+			ctx.HttpRequest = &httpRequest{}
+		}
 		ctx.HttpRequest.ResponseStatusCode = status
 		return ctx
 	}
