@@ -17,11 +17,11 @@ func WithContext(logger log.Logger, ctx stdcontex.Context) log.Logger {
 }
 
 func WithContextKeys(logger log.Logger, ctx stdcontex.Context, keys []interface{}) log.Logger {
-	keyvals := make(map[interface{}]interface{})
+	keyvals := make([]interface{}, 0, 0)
 
 	for _, key := range keys {
 		if val := ctx.Value(key); val != nil {
-			keyvals[key] = val
+			keyvals = append(keyvals, key, val)
 		}
 	}
 
