@@ -25,5 +25,5 @@ func WithContextKeys(logger log.Logger, ctx stdcontex.Context, keys []interface{
 		}
 	}
 
-	return log.With(logger, keyvals)
+	return log.With(logger, keyvals...)
 }
